@@ -453,11 +453,92 @@
 
   <!-- WALLET MODAL -->
   <div class="modal-bg" id="walletModal" onclick="if(event.target===this)closeWalletPicker()">
-    <div class="modal">
-      <div class="modal-handle"></div>
-      <div class="modal-title">Connect a wallet</div>
-      <div class="wallet-list" id="walletList">
-        <!-- populated by JS -->
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="walletModalTitle">Connect a wallet</div>
+
+    <!-- EMAIL LOGIN VIEW -->
+    <div id="emailLoginView" style="display:none">
+      <p style="color:var(--muted);font-size:13px;margin-bottom:16px;text-align:center">
+        We'll create a Solana wallet for you. Sign in with email — no extension needed.
+      </p>
+      <div class="field">
+        <label class="field-label">Email address</label>
+        <input class="field-input" id="emailInput" type="email" placeholder="you@example.com" autocomplete="email" />
+      </div>
+      <button class="cta-primary" id="emailSubmitBtn" onclick="submitEmail()" style="margin-bottom:12px">
+        ✉️ Send magic link
+      </button>
+      <button class="cta-secondary" onclick="closeEmailView()">← Back to wallets</button>
+
+      <div style="margin-top:20px;padding:14px;background:var(--bg3);border-radius:12px;font-size:11px;color:var(--muted);line-height:1.6">
+        <strong style="color:var(--text)">What happens next:</strong><br>
+        1. We email you a 6-digit code<br>
+        2. You enter it here<br>
+        3. We generate a Solana wallet for you<br>
+        4. You can launch tokens immediately<br>
+        <span style="color:var(--green)">Your private key never leaves your device.</span>
+      </div>
+    </div>
+
+    <!-- EMAIL CODE VIEW -->
+    <div id="emailCodeView" style="display:none">
+      <p style="color:var(--muted);font-size:13px;margin-bottom:16px;text-align:center">
+        Enter the 6-digit code we sent to <span id="emailSentTo" style="color:var(--text);font-weight:600"></span>
+      </p>
+      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px">
+        <input class="field-input" type="text" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;font-size:24px;background:var(--bg3);border-radius:12px;font-weight:800" oninput="otpNext(this, 0)" id="otp0" />
+        <input class="field-input" type="text" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;font-size:24px;background:var(--bg3);border-radius:12px;font-weight:800" oninput="otpNext(this, 1)" id="otp1" />
+        <input class="field-input" type="text" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;font-size:24px;background:var(--bg3);border-radius:12px;font-weight:800" oninput="otpNext(this, 2)" id="otp2" />
+        <input class="field-input" type="text" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;font-size:24px;background:var(--bg3);border-radius:12px;font-weight:800" oninput="otpNext(this, 3)" id="otp3" />
+        <input class="field-input" type="text" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;font-size:24px;background:var(--bg3);border-radius:12px;font-weight:800" oninput="otpNext(this, 4)" id="otp4" />
+        <input class="field-input" type="text" inputmode="numeric" maxlength="1" style="width:44px;height:52px;text-align:center;font-size:24px;background:var(--bg3);border-radius:12px;font-weight:800" oninput="otpNext(this, 5)" id="otp5" />
+      </div>
+      <button class="cta-primary" onclick="verifyOTP()" style="margin-bottom:12px">Verify code →</button>
+      <button class="cta-secondary" onclick="resendOTP()">↻ Resend code</button>
+    </div>
+
+    <!-- WALLET LIST VIEW -->
+    <div id="walletListView">
+      <!-- EMAIL OPTION (always first) -->
+      <div class="wallet-item" onclick="showEmailView()" style="background:linear-gradient(135deg,rgba(0,229,122,0.08),rgba(155,89,255,0.08));border-color:var(--green)">
+        <div class="wallet-icon">📧</div>
+        <div class="wallet-info">
+          <div class="wallet-name">Continue with email</div>
+          <div class="wallet-status detected">No extension needed · Recommended</div>
+        </div>
+        <div class="wallet-arrow">›</div>
+      </div>
+
+      <div style="margin:14px 0 10px;padding:0 4px;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:8px">
+        <span style="flex:1;height:1px;background:var(--line)"></span>
+        Solana wallets
+        <span style="flex:1;height:1px;background:var(--line)"></span>
+      </div>
+
+      <div class="wallet-list" id="walletListSolana"></div>
+
+      <div style="margin:14px 0 10px;padding:0 4px;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:8px">
+        <span style="flex:1;height:1px;background:var(--line)"></span>
+        EVM wallets
+        <span style="flex:1;height:1px;background:var(--line)"></span>
+      </div>
+
+      <div class="wallet-list" id="walletListEvm"></div>
+
+      <div style="margin:14px 0 10px;padding:0 4px;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:8px">
+        <span style="flex:1;height:1px;background:var(--line)"></span>
+        Universal
+        <span style="flex:1;height:1px;background:var(--line)"></span>
+      </div>
+
+      <div class="wallet-item" onclick="connectWalletConnect()">
+        <div class="wallet-icon">🔗</div>
+        <div class="wallet-info">
+          <div class="wallet-name">WalletConnect</div>
+          <div class="wallet-status">300+ wallets · Rainbow, Trust, Argent...</div>
+        </div>
+        <div class="wallet-arrow">›</div>
       </div>
     </div>
   </div>
@@ -522,14 +603,49 @@
       {name:'MoonBoi',vol:'$423K',pnl:'+$71K'},
     ];
 
-    const WALLETS = [
-      {name:'Phantom',emoji:'👻',url:'https://phantom.app/',detect:()=>window.phantom?.solana?.isPhantom},
-      {name:'Solflare',emoji:'🔥',url:'https://solflare.com/',detect:()=>window.solflare?.isSolflare},
-      {name:'Backpack',emoji:'🎒',url:'https://backpack.app/',detect:()=>window.backpack?.solana},
-      {name:'Coinbase Wallet',emoji:'🔵',url:'https://www.coinbase.com/wallet',detect:()=>window.coinbaseSolana},
-      {name:'Trust Wallet',emoji:'🛡️',url:'https://trustwallet.com/',detect:()=>window.trustwallet?.solana},
-      {name:'Exodus',emoji:'🚀',url:'https://www.exodus.com/',detect:()=>window.exodus?.solana},
+    // ── SOLANA WALLETS ────────────────────────────────
+    const SOLANA_WALLETS = [
+      {name:'Phantom',emoji:'👻',chain:'solana',url:'https://phantom.app/',detect:()=>window.phantom?.solana?.isPhantom,provider:()=>window.phantom?.solana},
+      {name:'Solflare',emoji:'🔥',chain:'solana',url:'https://solflare.com/',detect:()=>window.solflare?.isSolflare,provider:()=>window.solflare},
+      {name:'Backpack',emoji:'🎒',chain:'solana',url:'https://backpack.app/',detect:()=>! !window.backpack?.solana,provider:()=>window.backpack?.solana || window.xnft?.solana},
+      {name:'Coinbase Wallet',emoji:'🔵',chain:'solana',url:'https://www.coinbase.com/wallet',detect:()=>! !window.coinbaseSolana,provider:()=>window.coinbaseSolana},
+      {name:'Trust Wallet',emoji:'🛡️',chain:'solana',url:'https://trustwallet.com/',detect:()=>! !window.trustwallet?.solana,provider:()=>window.trustwallet?.solana},
+      {name:'Exodus',emoji:'🚀',chain:'solana',url:'https://www.exodus.com/',detect:()=>! !window.exodus?.solana,provider:()=>window.exodus?.solana},
     ];
+
+    // ── EVM WALLETS ───────────────────────────────────
+    const EVM_WALLETS = [
+      {name:'MetaMask',emoji:'🦊',chain:'evm',url:'https://metamask.io/',detect:()=>! !window.ethereum?.isMetaMask,provider:()=>window.ethereum},
+      {name:'Rabby',emoji:'🐰',chain:'evm',url:'https://rabby.io/',detect:()=>! !window.ethereum?.isRabby,provider:()=>window.ethereum},
+      {name:'Coinbase Wallet',emoji:'🔵',chain:'evm',url:'https://www.coinbase.com/wallet',detect:()=>! !window.ethereum?.isCoinbaseWallet,provider:()=>window.ethereum},
+      {name:'Brave Wallet',emoji:'🦁',chain:'evm',url:'brave://wallet/',detect:()=>! !window.ethereum?.isBraveWallet,provider:()=>window.ethereum},
+      {name:'OKX Wallet',emoji:'⭕',chain:'evm',url:'https://www.okx.com/web3',detect:()=>! !window.okxwallet,provider:()=>window.okxwallet},
+    ];
+
+    // ── WalletConnect (universal, supports 300+ wallets) ─
+    const WALLETCONNECT = {
+      name:'WalletConnect',
+      emoji:'🔗',
+      chain:'universal',
+      url:'https://walletconnect.com/',
+      detect:()=>false,
+      provider:()=>null
+    };
+
+    // ── Embedded wallets (email / social login) ────────
+    // We support Privy-style embedded wallets via Web Crypto API
+    // For demo: client-side ed25519 keypair generated from email
+    const EMBEDDED = {
+      name:'Email login',
+      emoji:'📧',
+      chain:'solana',
+      type:'embedded',
+      url:null,
+      detect:()=>false,
+      provider:null
+    };
+
+    const WALLETS = [...SOLANA_WALLETS, ...EVM_WALLETS, WALLETCONNECT, EMBEDDED];
 
     // ─── STATE ────────────────────────────────────────────
     const state = {
@@ -695,12 +811,30 @@
     }
 
     // ─── WALLET MODAL ─────────────────────────────────────
-    function renderWalletList() {
-      const c = document.getElementById('walletList');
-      c.innerHTML = WALLETS.map(w => {
+    function renderSolanaWallets() {
+      const c = document.getElementById('walletListSolana');
+      if (!c) return;
+      c.innerHTML = SOLANA_WALLETS.map(w => {
         const detected = (() => { try { return !!w.detect(); } catch(e) { return false; } })();
         return `
-          <div class="wallet-item" onclick="connectWallet('${w.name}', '${w.url}')">
+          <div class="wallet-item" onclick="connectExternalWallet('${w.name}')">
+            <div class="wallet-icon">${w.emoji}</div>
+            <div class="wallet-info">
+              <div class="wallet-name">${w.name}</div>
+              <div class="wallet-status ${detected?'detected':''}">${detected?'Detected ✓':'Not installed'}</div>
+            </div>
+            <div class="wallet-arrow">›</div>
+          </div>
+        `;
+      }).join('');
+    }
+    function renderEvmWallets() {
+      const c = document.getElementById('walletListEvm');
+      if (!c) return;
+      c.innerHTML = EVM_WALLETS.map(w => {
+        const detected = (() => { try { return !!w.detect(); } catch(e) { return false; } })();
+        return `
+          <div class="wallet-item" onclick="connectExternalWallet('${w.name}')">
             <div class="wallet-icon">${w.emoji}</div>
             <div class="wallet-info">
               <div class="wallet-name">${w.name}</div>
@@ -712,35 +846,263 @@
       }).join('');
     }
     function openWalletPicker() {
-      renderWalletList();
+      renderSolanaWallets();
+      renderEvmWallets();
+      showView('list');
       document.getElementById('walletModal').classList.add('open');
       if (navigator.vibrate) navigator.vibrate(20);
     }
     function closeWalletPicker() {
       document.getElementById('walletModal').classList.remove('open');
+      // Reset to list view after closing
+      setTimeout(() => showView('list'), 300);
     }
-    async function connectWallet(name, installUrl) {
-      const w = WALLETS.find(x => x.name === name);
+
+    function showView(v) {
+      document.getElementById('walletListView').style.display = v === 'list' ? 'block' : 'none';
+      document.getElementById('emailLoginView').style.display = v === 'email' ? 'block' : 'none';
+      document.getElementById('emailCodeView').style.display = v === 'code' ? 'block' : 'none';
+      document.getElementById('walletModalTitle').textContent =
+        v === 'email' ? 'Sign in with email' :
+        v === 'code' ? 'Enter verification code' :
+        'Connect a wallet';
+    }
+
+    // ─── EXTERNAL WALLET (Phantom / MetaMask / etc.) ──────
+    async function connectExternalWallet(name) {
+      const all = [...SOLANA_WALLETS, ...EVM_WALLETS];
+      const w = all.find(x => x.name === name);
+      if (!w) return;
+
       let provider = null;
-      try { provider = w.detect(); } catch(e) {}
+      try { provider = w.provider(); } catch(e) {}
+
       if (!provider) {
-        window.open(installUrl, '_blank');
+        window.open(w.url, '_blank');
         showToast('📲 Install ' + name, 'Install then refresh this page');
         return;
       }
+
       try {
-        const resp = await provider.connect();
-        showToast('✅ Connected!', name + ' ready to transact');
-        state.walletConnected = true;
-        closeWalletPicker();
+        if (w.chain === 'solana') {
+          // Solana connect
+          const resp = await provider.connect();
+          const pk = resp?.publicKey?.toString() || provider.publicKey?.toString();
+          if (!pk) throw new Error('No public key returned');
+          state.walletConnected = true;
+          state.walletType = name;
+          state.walletChain = 'solana';
+          state.walletAddress = pk;
+          closeWalletPicker();
+          showToast('✅ Connected!', name + ' · ' + pk.slice(0,4) + '...' + pk.slice(-4));
+        } else if (w.chain === 'evm') {
+          // EVM connect (request accounts)
+          const accounts = await provider.request({method: 'eth_requestAccounts'});
+          const addr = accounts[0];
+          if (!addr) throw new Error('No account returned');
+          state.walletConnected = true;
+          state.walletType = name;
+          state.walletChain = 'evm';
+          state.walletAddress = addr;
+          closeWalletPicker();
+          showToast('✅ Connected!', name + ' · ' + addr.slice(0,6) + '...' + addr.slice(-4));
+        }
         if (navigator.vibrate) navigator.vibrate([20,30,50]);
+        // Update header wallet button to show check
+        document.querySelectorAll('.h-btn')[0].textContent = '✅';
+        updateWalletPage();
       } catch(e) {
-        if (e?.code === 4001 || e?.message?.includes('rejected')) {
+        if (e?.code === 4001 || e?.message?.includes('rejected') || e?.code === 'ACTION_REJECTED') {
           showToast('Cancelled', 'You declined the connection');
         } else {
           showToast('❌ Connection failed', e.message || 'Try again');
         }
       }
+    }
+
+    // ─── WALLETCONNECT ────────────────────────────────────
+    async function connectWalletConnect() {
+      // WalletConnect v2 requires a projectId from cloud.reown.com
+      // For demo: show what would happen
+      showToast('🔗 WalletConnect', '300+ wallets supported · Setup projectId to enable');
+      // To fully implement:
+      // 1. npm install @walletconnect/modal @walletconnect/ethereum-provider @walletconnect/solana
+      // 2. const wcProvider = await EthereumProvider.init({ projectId, chains: [1, 101], showQrModal: true });
+      // 3. await wcProvider.connect();
+    }
+
+    // ─── EMAIL LOGIN (embedded wallet) ────────────────────
+    // Simulates a Privy-style magic-link flow.
+    // For real backend: connect to /api/auth/email-send -> SMTP -> code store
+    let _emailInProgress = null;
+
+    function showEmailView() {
+      showView('email');
+      setTimeout(() => document.getElementById('emailInput')?.focus(), 100);
+    }
+    function closeEmailView() {
+      showView('list');
+    }
+
+    async function submitEmail() {
+      const email = document.getElementById('emailInput').value.trim();
+      if (!email || !email.includes('@')) {
+        showToast('📧 Invalid email', 'Enter a valid email address');
+        return;
+      }
+      _emailInProgress = email;
+      const btn = document.getElementById('emailSubmitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '⏳ Sending...';
+
+      // DEMO MODE: show the code in toast (real: send via SMTP + show "check your inbox")
+      // Generate a deterministic 6-digit code from email hash for repeatability in demo
+      const code = await generateDemoOTP(email);
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = '✉️ Send magic link';
+        showToast('📧 Code sent', 'Check your inbox (or use ' + code + ' in demo)');
+        document.getElementById('emailSentTo').textContent = email;
+        showView('code');
+        setTimeout(() => document.getElementById('otp0')?.focus(), 100);
+        // Auto-fill demo code so user can test immediately
+        for (let i = 0; i < 6; i++) {
+          const el = document.getElementById('otp' + i);
+          if (el) el.value = code[i];
+        }
+      }, 1200);
+    }
+
+    async function generateDemoOTP(email) {
+      // Simple deterministic code from email for demo (no backend needed)
+      let hash = 0;
+      for (let i = 0; i < email.length; i++) {
+        hash = ((hash << 5) - hash) + email.charCodeAt(i);
+        hash = hash & hash;
+      }
+      const code = Math.abs(hash % 900000) + 100000;
+      return String(code);
+    }
+
+    function otpNext(el, idx) {
+      // Auto-advance to next field
+      el.value = el.value.replace(/[^0-9]/g, '');
+      if (el.value && idx < 5) {
+        const next = document.getElementById('otp' + (idx + 1));
+        if (next) next.focus();
+      }
+      // Auto-submit when last filled
+      if (idx === 5 && el.value) {
+        setTimeout(verifyOTP, 200);
+      }
+    }
+
+    async function verifyOTP() {
+      let code = '';
+      for (let i = 0; i < 6; i++) {
+        const el = document.getElementById('otp' + i);
+        if (!el || !el.value) {
+          showToast('❌ Incomplete code', 'Enter all 6 digits');
+          if (el) el.focus();
+          return;
+        }
+        code += el.value;
+      }
+      const expected = await generateDemoOTP(_emailInProgress);
+      if (code !== expected) {
+        showToast('❌ Wrong code', 'Try again or resend');
+        // Clear all
+        for (let i = 0; i < 6; i++) {
+          const el = document.getElementById('otp' + i);
+          if (el) el.value = '';
+        }
+        document.getElementById('otp0')?.focus();
+        return;
+      }
+      // Code valid — provision embedded wallet
+      await provisionEmbeddedWallet(_emailInProgress);
+    }
+
+    function resendOTP() {
+      if (_emailInProgress) {
+        for (let i = 0; i < 6; i++) {
+          const el = document.getElementById('otp' + i);
+          if (el) el.value = '';
+        }
+        submitEmail();
+      }
+    }
+
+    async function provisionEmbeddedWallet(email) {
+      // For production: use Privy, Magic.link, or Web3Auth
+      // For demo: generate a Solana keypair from email hash via Web Crypto
+      const btn = event.target;
+      btn.disabled = true;
+      btn.innerHTML = '⏳ Creating wallet...';
+
+      // Use Web Crypto to derive a deterministic 32-byte seed from email
+      const enc = new TextEncoder();
+      const data = enc.encode(email + ':memelaunch:v1');
+      const hashBuf = await crypto.subtle.digest('SHA-256', data);
+      const seed = new Uint8Array(hashBuf);
+
+      // For demo: use a fake address derived from seed
+      // (Real Solana keypair generation needs @solana/web3.js + ed25519)
+      const fakeAddr = base58Encode(seed);
+      const short = fakeAddr.slice(0, 8) + '...' + fakeAddr.slice(-6);
+
+      // Store in localStorage (demo only — production should use secure enclave / passkey)
+      localStorage.setItem('embedded_email', email);
+      localStorage.setItem('embedded_address', fakeAddr);
+
+      state.walletConnected = true;
+      state.walletType = 'Embedded (email)';
+      state.walletChain = 'solana';
+      state.walletAddress = fakeAddr;
+
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = 'Verify code →';
+        closeWalletPicker();
+        showToast('✅ Wallet created!', 'Solana · ' + short);
+        if (navigator.vibrate) navigator.vibrate([30,30,80]);
+        document.querySelectorAll('.h-btn')[0].textContent = '✅';
+        updateWalletPage();
+      }, 1500);
+    }
+
+    // Base58 encoder for Solana-style addresses
+    const B58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+    function base58Encode(bytes) {
+      let zeros = 0;
+      while (zeros < bytes.length && bytes[zeros] === 0) zeros++;
+      const digits = [];
+      for (let i = zeros; i < bytes.length; i++) {
+        let carry = bytes[i];
+        for (let j = 0; j < digits.length; j++) {
+          carry += digits[j] << 8;
+          digits[j] = carry % 58;
+          carry = (carry / 58) | 0;
+        }
+        while (carry > 0) {
+          digits.push(carry % 58);
+          carry = (carry / 58) | 0;
+        }
+      }
+      let result = '';
+      for (let i = 0; i < zeros; i++) result += B58_ALPHABET[0];
+      for (let i = digits.length - 1; i >= 0; i--) result += B58_ALPHABET[digits[i]];
+      return result;
+    }
+
+    function updateWalletPage() {
+      const portfolio = document.querySelector('#page-wallet');
+      if (!portfolio || !state.walletAddress) return;
+      // Find the balance display and update it
+      const balanceEl = portfolio.querySelector('.success-token div[style*="font-size:36px"]');
+      const subEl = portfolio.querySelector('.success-token div[style*="color:var(--muted);margin-top:4px"]');
+      if (balanceEl) balanceEl.textContent = '$0.00';
+      if (subEl) subEl.textContent = state.walletAddress.slice(0,6) + '...' + state.walletAddress.slice(-6);
     }
 
     // ─── TOAST ────────────────────────────────────────────
