@@ -1,0 +1,802 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="memelaunch" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <title>memelaunch.lol</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj48cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgcng9IjQyIiBmaWxsPSIjMDBiNDVlIi8+PHRleHQgeD0iOTYiIHk9IjEzMCIgZm9udC1zaXplPSIxMTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiPvCfjrU8L3RleHQ+PC9zdmc+" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --bg:#0a0a0f; --bg2:#15151f; --bg3:#1f1f2e;
+      --line:#2a2a3d;
+      --text:#f5f5fa; --muted:#8a8aa3;
+      --green:#00e57a; --green2:#00b85e;
+      --purple:#9b59ff; --pink:#ff4d8d; --yellow:#ffd60a;
+      --red:#ff4757;
+      --safe-top:env(safe-area-inset-top, 0);
+      --safe-bottom:env(safe-area-inset-bottom, 0);
+    }
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+    body{padding-bottom:calc(80px + var(--safe-bottom));padding-top:var(--safe-top)}
+    button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+    input,textarea,select{font:inherit;color:inherit;background:none;border:none;outline:none}
+    a{color:inherit;text-decoration:none}
+
+    /* SPLASH / INSTALL PROMPT */
+    #splash{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;transition:opacity 0.4s}
+    #splash.hide{opacity:0;pointer-events:none}
+    .splash-logo{font-size:96px;margin-bottom:24px;animation:bounce 1.4s infinite}
+    @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+    .splash-text{font-weight:800;font-size:20px;letter-spacing:-0.5px}
+
+    /* HEADER */
+    header{padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(10,10,15,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);z-index:30;border-bottom:1px solid var(--line)}
+    .h-logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:17px;letter-spacing:-0.3px}
+    .h-mark{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--green),var(--purple));display:flex;align-items:center;justify-content:center;font-size:16px}
+    .h-coin{color:var(--green)}
+    .h-actions{display:flex;align-items:center;gap:8px}
+    .h-btn{width:36px;height:36px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:18px}
+    .h-btn:active{transform:scale(0.92)}
+
+    /* STREAK BANNER */
+    .streak{padding:10px 16px;background:linear-gradient(90deg,rgba(255,214,10,0.12),rgba(255,77,141,0.12));border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;font-size:13px;font-weight:600;cursor:pointer}
+    .streak-fire{font-size:20px}
+    .streak-count{color:var(--yellow);font-weight:800;font-size:16px;margin-left:auto}
+    .streak-arrow{color:var(--muted)}
+
+    /* FEED */
+    .page{display:none;padding:0 0 24px}
+    .page.active{display:block;animation:fadeIn 0.3s}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+    /* HERO */
+    .hero{padding:24px 20px 16px;text-align:center}
+    .hero h1{font-size:32px;font-weight:900;letter-spacing:-1.5px;line-height:1.05;margin-bottom:8px}
+    .hero h1 .grad{background:linear-gradient(120deg,var(--green),var(--purple),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .hero p{color:var(--muted);font-size:14px;margin-bottom:20px}
+
+    /* QUICK ACTION GRID */
+    .quick{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:0 16px}
+    .q-card{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:16px;text-align:left;transition:transform 0.15s,border-color 0.15s;position:relative;overflow:hidden}
+    .q-card:active{transform:scale(0.97);border-color:var(--green)}
+    .q-emoji{font-size:32px;margin-bottom:10px;display:block}
+    .q-title{font-weight:700;font-size:15px;margin-bottom:2px}
+    .q-sub{font-size:12px;color:var(--muted)}
+    .q-card.primary{background:linear-gradient(135deg,rgba(0,229,122,0.15),rgba(155,89,255,0.15));border-color:var(--green)}
+    .q-card.primary::before{content:"";position:absolute;top:0;right:0;width:60px;height:60px;background:radial-gradient(circle,rgba(0,229,122,0.3),transparent 70%)}
+
+    /* TRENDING TOKENS */
+    .section-head{padding:24px 20px 12px;display:flex;align-items:center;justify-content:space-between}
+    .section-title{font-size:18px;font-weight:800;letter-spacing:-0.5px}
+    .section-link{font-size:13px;color:var(--green);font-weight:600}
+
+    .ticker{padding:0 16px;display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    .ticker::-webkit-scrollbar{display:none}
+    .tk-card{flex:0 0 160px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:12px;scroll-snap-align:start;cursor:pointer;transition:transform 0.15s}
+    .tk-card:active{transform:scale(0.96)}
+    .tk-emoji{font-size:28px;margin-bottom:8px;display:block}
+    .tk-name{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .tk-meta{display:flex;align-items:center;gap:6px;margin-top:4px;font-size:11px;color:var(--muted)}
+    .tk-change{font-weight:700;color:var(--green);font-size:12px;margin-top:6px}
+    .tk-change.down{color:var(--red)}
+
+    /* LEADERBOARD */
+    .leader{padding:0 16px}
+    .lb-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;margin-bottom:8px}
+    .lb-rank{width:28px;font-weight:800;font-size:16px;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums}
+    .lb-rank.top1{color:var(--yellow)}
+    .lb-rank.top2{color:#c0c0c0}
+    .lb-rank.top3{color:#cd7f32}
+    .lb-info{flex:1;min-width:0}
+    .lb-name{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .lb-vol{font-size:11px;color:var(--muted);margin-top:2px}
+    .lb-pnl{font-weight:800;font-size:15px;color:var(--green);font-variant-numeric:tabular-nums}
+
+    /* LAUNCH FLOW */
+    .launch{padding:20px 16px}
+    .step{display:none}
+    .step.active{display:block;animation:slideIn 0.3s}
+    @keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+    .step-num{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+    .step-title{font-size:24px;font-weight:800;letter-spacing:-0.8px;margin-bottom:6px}
+    .step-sub{color:var(--muted);font-size:14px;margin-bottom:24px}
+    .field{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:12px;transition:border-color 0.2s}
+    .field:focus-within{border-color:var(--green)}
+    .field-label{display:block;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+    .field-input{width:100%;font-size:16px;font-weight:600;background:transparent}
+    .field-input::placeholder{color:var(--muted);font-weight:400}
+    .chip-row{display:flex;gap:8px;overflow-x:auto;margin-bottom:16px;padding-bottom:4px;scrollbar-width:none}
+    .chip-row::-webkit-scrollbar{display:none}
+    .chip{flex:0 0 auto;padding:8px 14px;background:var(--bg2);border:1px solid var(--line);border-radius:99px;font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer;transition:all 0.15s}
+    .chip:active{transform:scale(0.95)}
+    .chip.sel{background:var(--green);color:#000;border-color:var(--green)}
+    .ai-card{background:linear-gradient(135deg,rgba(155,89,255,0.12),rgba(255,77,141,0.12));border:1px solid var(--purple);border-radius:14px;padding:14px;margin-bottom:12px;cursor:pointer;display:flex;align-items:center;gap:12px}
+    .ai-card:active{transform:scale(0.98)}
+    .ai-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--purple),var(--pink));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+    .ai-info{flex:1}
+    .ai-title{font-weight:700;font-size:14px}
+    .ai-sub{font-size:11px;color:var(--muted);margin-top:2px}
+    .ai-arrow{color:var(--muted);font-size:18px}
+    .cta-primary{width:100%;padding:18px;background:var(--green);color:#000;border-radius:14px;font-size:16px;font-weight:800;letter-spacing:-0.3px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:transform 0.15s,opacity 0.15s}
+    .cta-primary:active{transform:scale(0.98);opacity:0.85}
+    .cta-primary:disabled{opacity:0.4;cursor:not-allowed}
+    .cta-secondary{width:100%;padding:18px;background:var(--bg2);color:var(--text);border:1px solid var(--line);border-radius:14px;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:transform 0.15s}
+    .cta-secondary:active{transform:scale(0.98)}
+
+    /* SUCCESS / CONFETTI */
+    #confetti{position:fixed;inset:0;pointer-events:none;z-index:200;overflow:hidden}
+    .conf{position:absolute;width:8px;height:14px;top:-20px;animation:fall 2.5s linear forwards}
+    @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+
+    .success-card{padding:32px 24px;text-align:center}
+    .success-icon{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--purple));display:flex;align-items:center;justify-content:center;font-size:48px;margin:0 auto 20px;animation:pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)}
+    @keyframes pop{from{transform:scale(0)}}
+    .success-title{font-size:28px;font-weight:900;letter-spacing:-1px;margin-bottom:8px}
+    .success-sub{color:var(--muted);font-size:14px;margin-bottom:24px}
+    .success-token{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:20px}
+    .success-token-name{font-size:20px;font-weight:800;margin-bottom:4px}
+    .success-token-ticker{color:var(--green);font-weight:700}
+    .success-row{display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line);font-size:13px}
+    .success-row:first-child{border-top:none}
+    .success-row-label{color:var(--muted)}
+    .success-row-value{font-weight:700;font-variant-numeric:tabular-nums}
+
+    /* BOTTOM NAV */
+    nav.bottom{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,15,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--line);display:flex;padding:8px 0 calc(8px + var(--safe-bottom));z-index:30}
+    nav.bottom button{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;color:var(--muted);font-size:11px;font-weight:600;transition:color 0.15s}
+    nav.bottom button.on{color:var(--green)}
+    nav.bottom button:active{transform:scale(0.92)}
+    nav.bottom .nav-icon{font-size:22px;line-height:1}
+    nav.bottom .nav-fab{position:relative;top:-16px}
+    nav.bottom .nav-fab span{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green2));display:flex;align-items:center;justify-content:center;font-size:28px;color:#000;box-shadow:0 8px 24px rgba(0,229,122,0.4)}
+
+    /* WALLET PICKER (modal) */
+    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:60;display:none;align-items:flex-end}
+    .modal-bg.open{display:flex;animation:fadeIn 0.2s}
+    .modal{background:var(--bg2);border-top-left-radius:24px;border-top-right-radius:24px;width:100%;max-height:80vh;padding:20px 16px calc(20px + var(--safe-bottom));overflow-y:auto;animation:slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1)}
+    @keyframes slideUp{from{transform:translateY(100%)}}
+    .modal-handle{width:36px;height:4px;background:var(--line);border-radius:2px;margin:0 auto 16px}
+    .modal-title{font-size:20px;font-weight:800;letter-spacing:-0.5px;margin-bottom:16px;text-align:center}
+    .wallet-list{display:grid;gap:8px}
+    .wallet-item{display:flex;align-items:center;gap:14px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--bg3);cursor:pointer;transition:all 0.15s}
+    .wallet-item:active{transform:scale(0.98);border-color:var(--green)}
+    .wallet-icon{width:44px;height:44px;border-radius:12px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+    .wallet-info{flex:1}
+    .wallet-name{font-weight:700;font-size:15px}
+    .wallet-status{font-size:11px;color:var(--muted);margin-top:2px}
+    .wallet-status.detected{color:var(--green)}
+    .wallet-arrow{color:var(--muted)}
+
+    /* INSTALL PROMPT */
+    .install-banner{position:fixed;top:calc(60px + var(--safe-top));left:16px;right:16px;background:var(--bg2);border:1px solid var(--green);border-radius:14px;padding:14px;display:none;align-items:center;gap:12px;z-index:25;box-shadow:0 12px 32px rgba(0,0,0,0.4)}
+    .install-banner.show{display:flex;animation:slideIn 0.3s}
+    .install-icon{font-size:28px}
+    .install-info{flex:1}
+    .install-title{font-weight:700;font-size:14px}
+    .install-sub{font-size:11px;color:var(--muted);margin-top:2px}
+    .install-btn{padding:8px 14px;background:var(--green);color:#000;border-radius:8px;font-weight:700;font-size:13px}
+
+    /* TOAST */
+    #toast{position:fixed;bottom:calc(96px + var(--safe-bottom));left:16px;right:16px;background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:12px 16px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:10px;z-index:50;transform:translateY(120%);transition:transform 0.3s;max-width:400px;margin:0 auto}
+    #toast.show{transform:translateY(0)}
+    .toast-icon{font-size:20px}
+
+    /* SKELETON */
+    @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+    .skeleton{background:linear-gradient(90deg,var(--bg2) 0%,var(--bg3) 50%,var(--bg2) 100%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+
+    /* PULL TO REFRESH */
+    .pull-indicator{text-align:center;padding:12px;color:var(--muted);font-size:12px;font-weight:600;display:none}
+    .pull-indicator.show{display:block}
+
+    /* HAPTIC HELPER (visual feedback if no vibration API) */
+    @keyframes bump{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+    .bump{animation:bump 0.3s}
+
+    @media(min-width:640px){
+      .quick{max-width:480px;margin:0 auto}
+      .ticker{max-width:600px;margin:0 auto}
+      .leader{max-width:480px;margin:0 auto}
+      .launch{max-width:480px;margin:0 auto}
+      body{background:var(--bg2)}
+      .page{background:var(--bg);max-width:640px;margin:0 auto;min-height:100vh}
+      nav.bottom{max-width:640px;left:50%;transform:translateX(-50%)}
+    }
+  </style>
+</head>
+<body>
+  <div id="splash">
+    <div class="splash-logo">🚀</div>
+    <div class="splash-text">memelaunch.lol</div>
+  </div>
+
+  <header>
+    <div class="h-logo">
+      <div class="h-mark">🚀</div>
+      <span>memelaunch<span class="h-coin">.lol</span></span>
+    </div>
+    <div class="h-actions">
+      <button class="h-btn" onclick="openWalletPicker()" aria-label="Wallet">👛</button>
+      <button class="h-btn" aria-label="Notifications">🔔</button>
+    </div>
+  </header>
+
+  <div class="streak" onclick="showToast('🔥 Keep it up!', 'Your daily streak grows every time you launch.')">
+    <span class="streak-fire">🔥</span>
+    <span>Daily streak</span>
+    <span class="streak-count" id="streakCount">3 days</span>
+    <span class="streak-arrow">›</span>
+  </div>
+
+  <!-- HOME PAGE -->
+  <main class="page active" id="page-home">
+    <section class="hero">
+      <h1>Launch in <span class="grad">60s</span></h1>
+      <p>AI does the work. You collect the fees.</p>
+    </section>
+
+    <div class="quick">
+      <button class="q-card primary" onclick="switchPage('launch')">
+        <span class="q-emoji">🚀</span>
+        <div class="q-title">Launch token</div>
+        <div class="q-sub">Start from scratch</div>
+      </button>
+      <button class="q-card" onclick="showToast('🤖 AI Builder', 'Pick a trend → AI generates the whole thing')">
+        <span class="q-emoji">🤖</span>
+        <div class="q-title">AI Builder</div>
+        <div class="q-sub">From a single prompt</div>
+      </button>
+      <button class="q-card" onclick="showToast('📈 Copy trade', 'Mirror top traders')">
+        <span class="q-emoji">📈</span>
+        <div class="q-title">Copy trade</div>
+        <div class="q-sub">Mirror top wallets</div>
+      </button>
+      <button class="q-card" onclick="showToast('👀 Watchlist', 'Coming soon')">
+        <span class="q-emoji">👀</span>
+        <div class="q-title">Watchlist</div>
+        <div class="q-sub">Track your bags</div>
+      </button>
+    </div>
+
+    <div class="section-head">
+      <div class="section-title">🔥 Trending</div>
+      <button class="section-link" onclick="showToast('Loading full feed...')">See all</button>
+    </div>
+    <div class="ticker" id="trendingTicker">
+      <!-- populated by JS -->
+    </div>
+
+    <div class="section-head">
+      <div class="section-title">🏆 Today's top launchers</div>
+      <button class="section-link" onclick="showToast('Weekly leaderboard coming soon')">Weekly</button>
+    </div>
+    <div class="leader" id="leaderboard">
+      <!-- populated by JS -->
+    </div>
+  </main>
+
+  <!-- LAUNCH PAGE -->
+  <main class="page" id="page-launch">
+    <div class="launch">
+      <!-- STEP 1: TREND -->
+      <div class="step active" id="step-1">
+        <div class="step-num">Step 1 of 3</div>
+        <div class="step-title">Pick a vibe</div>
+        <div class="step-sub">Choose what your memecoin is about. We'll generate the rest.</div>
+
+        <div class="chip-row" id="trendChips">
+          <!-- populated by JS -->
+        </div>
+
+        <div class="ai-card" onclick="simulateAI()">
+          <div class="ai-icon">✨</div>
+          <div class="ai-info">
+            <div class="ai-title">Surprise me</div>
+            <div class="ai-sub">AI picks the trend based on what's hot right now</div>
+          </div>
+          <div class="ai-arrow">›</div>
+        </div>
+
+        <button class="cta-primary" id="next1" onclick="goStep(2)" disabled>
+          Next →
+        </button>
+      </div>
+
+      <!-- STEP 2: DETAILS -->
+      <div class="step" id="step-2">
+        <div class="step-num">Step 2 of 3</div>
+        <div class="step-title">Token details</div>
+        <div class="step-sub">Edit anything. AI pre-filled the basics.</div>
+
+        <div class="field">
+          <label class="field-label">Name</label>
+          <input class="field-input" id="tokName" placeholder="Loading..." readonly />
+        </div>
+        <div class="field">
+          <label class="field-label">Ticker</label>
+          <input class="field-input" id="tokTicker" placeholder="..." maxlength="6" readonly />
+        </div>
+        <div class="field">
+          <label class="field-label">Description</label>
+          <input class="field-input" id="tokDesc" placeholder="..." readonly />
+        </div>
+
+        <button class="cta-secondary" style="margin-bottom:12px" onclick="regenerateAI()">
+          🎲 Regenerate
+        </button>
+
+        <button class="cta-primary" id="next2" onclick="goStep(3)">
+          Looks good →
+        </button>
+      </div>
+
+      <!-- STEP 3: LAUNCH -->
+      <div class="step" id="step-3">
+        <div class="step-num">Step 3 of 3</div>
+        <div class="step-title">Ready to launch</div>
+        <div class="step-sub">Review and pay to deploy.</div>
+
+        <div class="success-token" style="margin-bottom:20px">
+          <div class="success-token-name" id="finalName">—</div>
+          <div class="success-token-ticker" id="finalTicker">—</div>
+        </div>
+
+        <div class="field" style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:13px;color:var(--muted)">Launch fee</span>
+          <span style="font-weight:800;font-size:18px">0.5 SOL <span style="color:var(--muted);font-size:13px;font-weight:500">≈ $65</span></span>
+        </div>
+        <div class="field" style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:13px;color:var(--muted)">Platform allocation</span>
+          <span style="font-weight:700;font-size:15px">2%</span>
+        </div>
+        <div class="field" style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:13px;color:var(--muted)">Est. deploy time</span>
+          <span style="font-weight:700;font-size:15px;color:var(--green)">~60s</span>
+        </div>
+
+        <button class="cta-primary" style="margin-bottom:12px" onclick="launchToken()">
+          🚀 Launch now
+        </button>
+        <button class="cta-secondary" onclick="goStep(2)">
+          ← Back
+        </button>
+      </div>
+
+      <!-- SUCCESS -->
+      <div class="step" id="step-success">
+        <div class="success-card">
+          <div class="success-icon">🎉</div>
+          <div class="success-title">Launched!</div>
+          <div class="success-sub">Your token is live on Solana mainnet.</div>
+
+          <div class="success-token">
+            <div class="success-token-name" id="succName">—</div>
+            <div class="success-token-ticker" id="succTicker">—</div>
+          </div>
+
+          <div class="success-row">
+            <span class="success-row-label">Contract</span>
+            <span class="success-row-value" style="font-size:11px">7xKXt...f8Np</span>
+          </div>
+          <div class="success-row">
+            <span class="success-row-label">TX</span>
+            <span class="success-row-value" style="font-size:11px">4nQb9...aZc</span>
+          </div>
+          <div class="success-row">
+            <span class="success-row-label">Deployed in</span>
+            <span class="success-row-value">58.4s</span>
+          </div>
+
+          <button class="cta-primary" style="margin-bottom:12px" onclick="showToast('📋 Copied to clipboard!')">
+            📋 Copy contract address
+          </button>
+          <button class="cta-secondary" onclick="resetLaunch()">
+            🚀 Launch another
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- WALLET PAGE -->
+  <main class="page" id="page-wallet">
+    <div class="launch">
+      <div class="step-title">Portfolio</div>
+      <div class="step-sub">Your tokens at a glance.</div>
+
+      <div class="success-token" style="text-align:center;padding:24px">
+        <div style="font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Total balance</div>
+        <div style="font-size:36px;font-weight:900;letter-spacing:-1.5px">$0.00</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px">Connect wallet to see your tokens</div>
+      </div>
+
+      <button class="cta-primary" onclick="openWalletPicker()">
+        👛 Connect wallet
+      </button>
+
+      <div class="section-head" style="padding:24px 0 12px">
+        <div class="section-title">Your tokens</div>
+      </div>
+
+      <div style="text-align:center;color:var(--muted);padding:32px 16px;font-size:14px">
+        No tokens yet. <a href="#" style="color:var(--green)" onclick="switchPage('launch');return false">Launch your first one →</a>
+      </div>
+    </div>
+  </main>
+
+  <div id="confetti"></div>
+
+  <nav class="bottom">
+    <button class="on" data-page="home" onclick="switchPage('home')">
+      <span class="nav-icon">🏠</span>
+      Home
+    </button>
+    <button data-page="launch" onclick="switchPage('launch')">
+      <span class="nav-fab"><span>+</span></span>
+      <span style="margin-top:-8px">Launch</span>
+    </button>
+    <button data-page="wallet" onclick="switchPage('wallet')">
+      <span class="nav-icon">👛</span>
+      Wallet
+    </button>
+  </nav>
+
+  <!-- WALLET MODAL -->
+  <div class="modal-bg" id="walletModal" onclick="if(event.target===this)closeWalletPicker()">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Connect a wallet</div>
+      <div class="wallet-list" id="walletList">
+        <!-- populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <div class="install-banner" id="installBanner">
+    <div class="install-icon">📲</div>
+    <div class="install-info">
+      <div class="install-title">Install memelaunch</div>
+      <div class="install-sub">Add to home screen for one-tap access</div>
+    </div>
+    <button class="install-btn" onclick="installPWA()">Install</button>
+    <button class="h-btn" style="width:32px;height:32px;background:transparent" onclick="dismissInstall()">✕</button>
+  </div>
+
+  <div id="toast">
+    <span class="toast-icon" id="toastIcon">ℹ️</span>
+    <div>
+      <div id="toastTitle" style="font-weight:700"></div>
+      <div id="toastSub" style="font-size:12px;color:var(--muted);margin-top:2px"></div>
+    </div>
+  </div>
+
+  <script>
+    // ─── DATA ─────────────────────────────────────────────
+    const TRENDS = [
+      '🤖 AI agents','🐸 Frogs','🐕 Dogs','🐱 Cats','🦍 Apes',
+      '👽 Aliens','🚀 Space','🧠 Brain rot','💀 Degen','⚡ Speed',
+      '🎮 Gaming','🔥 Fire','💎 Diamond','🌙 Moon','💯 Meme',
+      '🦄 Unicorns','🎲 Casino','🍕 Food','⚔️ Warriors','👑 Royalty'
+    ];
+
+    const NAME_PARTS = {
+      prefix:['Degen','Alpha','Moon','Giga','Turbo','Hyper','Meta','Ultra','Super','Crypto','Based','Chad','Sigma','Astro','Quantum','Pixel','Neon','Solar','Lunar','Shadow'],
+      noun:['Coin','Pump','Rocket','Whale','Ape','Cat','Dog','Frog','Pepe','Shib','Wojak','Doge','Grok','Skibidi','Rizz','Fanum','Ohio','Sigma','Chad','Queen']
+    };
+
+    const DESCS = [
+      'The one true memecoin. No utility, all vibes.',
+      'You either make it or break it. No in between.',
+      'WAGMI. Probably. Maybe. Definitely.',
+      'Building nothing. Shipping everything.',
+      'For the culture. By the culture.',
+      'Degen energy only. Diamond hands required.'
+    ];
+
+    const TRENDING = [
+      {emoji:'🐕',name:'DOGE2',ticker:'DOGE2',vol:'$124K',change:'+847%'},
+      {emoji:'🐸',name:'PEPE3',ticker:'PEPE3',vol:'$89K',change:'+512%'},
+      {emoji:'🤖',name:'AIBot',ticker:'AIBOT',vol:'$67K',change:'+234%'},
+      {emoji:'🌙',name:'MOON',ticker:'MOON',vol:'$45K',change:'+189%'},
+      {emoji:'🔥',name:'FIRE',ticker:'FIRE',vol:'$38K',change:'+147%'},
+      {emoji:'💎',name:'GEM',ticker:'GEM',vol:'$28K',change:'+98%'},
+      {emoji:'⚡',name:'BOLT',ticker:'BOLT',vol:'$21K',change:'+76%'},
+      {emoji:'👑',name:'KING',ticker:'KING',vol:'$19K',change:'+54%'},
+    ];
+
+    const LEADERS = [
+      {name:'0xC4...7aF',vol:'$1.2M',pnl:'+$284K'},
+      {name:'SolWhale.eth',vol:'$890K',pnl:'+$192K'},
+      {name:'DegenKing',vol:'$654K',pnl:'+$148K'},
+      {name:'PepeLord',vol:'$512K',pnl:'+$94K'},
+      {name:'MoonBoi',vol:'$423K',pnl:'+$71K'},
+    ];
+
+    const WALLETS = [
+      {name:'Phantom',emoji:'👻',url:'https://phantom.app/',detect:()=>window.phantom?.solana?.isPhantom},
+      {name:'Solflare',emoji:'🔥',url:'https://solflare.com/',detect:()=>window.solflare?.isSolflare},
+      {name:'Backpack',emoji:'🎒',url:'https://backpack.app/',detect:()=>window.backpack?.solana},
+      {name:'Coinbase Wallet',emoji:'🔵',url:'https://www.coinbase.com/wallet',detect:()=>window.coinbaseSolana},
+      {name:'Trust Wallet',emoji:'🛡️',url:'https://trustwallet.com/',detect:()=>window.trustwallet?.solana},
+      {name:'Exodus',emoji:'🚀',url:'https://www.exodus.com/',detect:()=>window.exodus?.solana},
+    ];
+
+    // ─── STATE ────────────────────────────────────────────
+    const state = {
+      trend: null,
+      tokenName: '',
+      tokenTicker: '',
+      tokenDesc: '',
+      walletConnected: false,
+      deferredPrompt: null,
+    };
+
+    // ─── SPLASH ───────────────────────────────────────────
+    setTimeout(() => {
+      document.getElementById('splash').classList.add('hide');
+      setTimeout(() => document.getElementById('splash').remove(), 400);
+      if (navigator.vibrate) navigator.vibrate(20);
+    }, 800);
+
+    // ─── TRENDING / LEADERBOARD RENDER ────────────────────
+    function renderTrending() {
+      const c = document.getElementById('trendingTicker');
+      c.innerHTML = TRENDING.map(t => `
+        <div class="tk-card" onclick="showToast('📈 ${t.name}', '24h: ${t.change}\\nVol: ${t.vol}')">
+          <span class="tk-emoji">${t.emoji}</span>
+          <div class="tk-name">${t.name}</div>
+          <div class="tk-meta">${t.ticker} · ${t.vol}</div>
+          <div class="tk-change">${t.change}</div>
+        </div>
+      `).join('');
+    }
+    function renderLeaders() {
+      const c = document.getElementById('leaderboard');
+      c.innerHTML = LEADERS.map((l,i) => `
+        <div class="lb-row" onclick="showToast('👤 ${l.name}', 'Copy trading coming soon')">
+          <div class="lb-rank ${i===0?'top1':i===1?'top2':i===2?'top3':''}">${i+1}</div>
+          <div class="lb-info">
+            <div class="lb-name">${l.name}</div>
+            <div class="lb-vol">Vol: ${l.vol}</div>
+          </div>
+          <div class="lb-pnl">${l.pnl}</div>
+        </div>
+      `).join('');
+    }
+
+    // ─── TREND CHIPS ──────────────────────────────────────
+    function renderTrendChips() {
+      const c = document.getElementById('trendChips');
+      c.innerHTML = TRENDS.map(t => `<button class="chip" onclick="pickTrend(this, '${t}')">${t}</button>`).join('');
+    }
+    function pickTrend(el, trend) {
+      document.querySelectorAll('#trendChips .chip').forEach(c => c.classList.remove('sel'));
+      el.classList.add('sel');
+      state.trend = trend;
+      document.getElementById('next1').disabled = false;
+      if (navigator.vibrate) navigator.vibrate(15);
+    }
+    function simulateAI() {
+      const random = TRENDS[Math.floor(Math.random()*TRENDS.length)];
+      const chips = document.querySelectorAll('#trendChips .chip');
+      chips.forEach(c => { if (c.textContent === random) pickTrend(c, random); });
+      showToast('✨ AI picked', random);
+    }
+
+    // ─── AI GENERATION ────────────────────────────────────
+    function generateToken(trend) {
+      const prefix = NAME_PARTS.prefix[Math.floor(Math.random()*NAME_PARTS.prefix.length)];
+      const noun = NAME_PARTS.noun[Math.floor(Math.random()*NAME_PARTS.noun.length)];
+      const name = `${prefix}${noun}`;
+      const ticker = (prefix[0] + noun.slice(0,3)).toUpperCase();
+      const desc = DESCS[Math.floor(Math.random()*DESCS.length)];
+      return {name, ticker, desc};
+    }
+    function regenerateAI() {
+      if (!state.trend) return;
+      const t = generateToken(state.trend);
+      state.tokenName = t.name;
+      state.tokenTicker = t.ticker;
+      state.tokenDesc = t.desc;
+      document.getElementById('tokName').value = t.name;
+      document.getElementById('tokTicker').value = t.ticker;
+      document.getElementById('tokDesc').value = t.desc;
+      if (navigator.vibrate) navigator.vibrate([10,30,10]);
+    }
+
+    // ─── STEP NAVIGATION ──────────────────────────────────
+    function goStep(n) {
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      if (n === 2 && state.trend) {
+        regenerateAI();
+        document.getElementById('step-2').classList.add('active');
+      } else if (n === 3) {
+        document.getElementById('finalName').textContent = state.tokenName || 'My Token';
+        document.getElementById('finalTicker').textContent = '$' + (state.tokenTicker || 'TKN');
+        document.getElementById('step-3').classList.add('active');
+      } else if (n === 'success') {
+        document.getElementById('succName').textContent = state.tokenName;
+        document.getElementById('succTicker').textContent = '$' + state.tokenTicker;
+        document.getElementById('step-success').classList.add('active');
+      }
+      if (navigator.vibrate) navigator.vibrate(15);
+    }
+
+    // ─── LAUNCH ───────────────────────────────────────────
+    function launchToken() {
+      const btn = event.target;
+      btn.disabled = true;
+      btn.innerHTML = '⏳ Deploying...';
+      setTimeout(() => {
+        // Simulate success
+        btn.innerHTML = '✅ Confirmed';
+        if (navigator.vibrate) navigator.vibrate([50,50,200]);
+        goStep('success');
+        fireConfetti();
+        incrementStreak();
+      }, 2200);
+    }
+    function resetLaunch() {
+      state.trend = null;
+      state.tokenName = '';
+      state.tokenTicker = '';
+      state.tokenDesc = '';
+      document.querySelectorAll('#trendChips .chip').forEach(c => c.classList.remove('sel'));
+      document.getElementById('next1').disabled = true;
+      goStep(1);
+      switchPage('home');
+    }
+
+    // ─── CONFETTI ─────────────────────────────────────────
+    function fireConfetti() {
+      const c = document.getElementById('confetti');
+      const colors = ['#00e57a','#9b59ff','#ff4d8d','#ffd60a','#ff4757'];
+      for (let i = 0; i < 50; i++) {
+        const div = document.createElement('div');
+        div.className = 'conf';
+        div.style.left = Math.random() * 100 + '%';
+        div.style.background = colors[Math.floor(Math.random()*colors.length)];
+        div.style.animationDelay = Math.random() * 0.5 + 's';
+        div.style.animationDuration = (2 + Math.random() * 1.5) + 's';
+        c.appendChild(div);
+        setTimeout(() => div.remove(), 3500);
+      }
+    }
+
+    // ─── STREAK ───────────────────────────────────────────
+    function incrementStreak() {
+      const el = document.getElementById('streakCount');
+      const match = el.textContent.match(/(\d+)/);
+      if (match) {
+        const n = parseInt(match[1]) + 1;
+        el.textContent = n + (n === 1 ? ' day' : ' days');
+        el.classList.add('bump');
+        setTimeout(() => el.classList.remove('bump'), 300);
+      }
+    }
+
+    // ─── PAGE SWITCHING ───────────────────────────────────
+    function switchPage(p) {
+      document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+      document.getElementById('page-' + p).classList.add('active');
+      document.querySelectorAll('nav.bottom button').forEach(b => b.classList.toggle('on', b.dataset.page === p));
+      window.scrollTo(0, 0);
+      if (navigator.vibrate) navigator.vibrate(10);
+    }
+
+    // ─── WALLET MODAL ─────────────────────────────────────
+    function renderWalletList() {
+      const c = document.getElementById('walletList');
+      c.innerHTML = WALLETS.map(w => {
+        const detected = (() => { try { return !!w.detect(); } catch(e) { return false; } })();
+        return `
+          <div class="wallet-item" onclick="connectWallet('${w.name}', '${w.url}')">
+            <div class="wallet-icon">${w.emoji}</div>
+            <div class="wallet-info">
+              <div class="wallet-name">${w.name}</div>
+              <div class="wallet-status ${detected?'detected':''}">${detected?'Detected ✓':'Not installed'}</div>
+            </div>
+            <div class="wallet-arrow">›</div>
+          </div>
+        `;
+      }).join('');
+    }
+    function openWalletPicker() {
+      renderWalletList();
+      document.getElementById('walletModal').classList.add('open');
+      if (navigator.vibrate) navigator.vibrate(20);
+    }
+    function closeWalletPicker() {
+      document.getElementById('walletModal').classList.remove('open');
+    }
+    async function connectWallet(name, installUrl) {
+      const w = WALLETS.find(x => x.name === name);
+      let provider = null;
+      try { provider = w.detect(); } catch(e) {}
+      if (!provider) {
+        window.open(installUrl, '_blank');
+        showToast('📲 Install ' + name, 'Install then refresh this page');
+        return;
+      }
+      try {
+        const resp = await provider.connect();
+        showToast('✅ Connected!', name + ' ready to transact');
+        state.walletConnected = true;
+        closeWalletPicker();
+        if (navigator.vibrate) navigator.vibrate([20,30,50]);
+      } catch(e) {
+        if (e?.code === 4001 || e?.message?.includes('rejected')) {
+          showToast('Cancelled', 'You declined the connection');
+        } else {
+          showToast('❌ Connection failed', e.message || 'Try again');
+        }
+      }
+    }
+
+    // ─── TOAST ────────────────────────────────────────────
+    let toastTimer;
+    function showToast(title, sub='', icon='ℹ️') {
+      document.getElementById('toastTitle').textContent = title;
+      document.getElementById('toastSub').textContent = sub || '';
+      document.getElementById('toastIcon').textContent = icon;
+      const t = document.getElementById('toast');
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    // ─── PWA INSTALL ──────────────────────────────────────
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      state.deferredPrompt = e;
+      setTimeout(() => {
+        if (!localStorage.getItem('installDismissed')) {
+          document.getElementById('installBanner').classList.add('show');
+        }
+      }, 3000);
+    });
+    async function installPWA() {
+      if (state.deferredPrompt) {
+        state.deferredPrompt.prompt();
+        const {outcome} = await state.deferredPrompt.userChoice;
+        if (outcome === 'accepted') showToast('📲 Installing...', 'memelaunch will appear on your home screen');
+        state.deferredPrompt = null;
+      }
+      dismissInstall();
+    }
+    function dismissInstall() {
+      document.getElementById('installBanner').classList.remove('show');
+      localStorage.setItem('installDismissed', '1');
+    }
+
+    // ─── SERVICE WORKER ───────────────────────────────────
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+
+    // ─── PULL TO REFRESH (mobile) ─────────────────────────
+    let startY = 0;
+    document.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, {passive:true});
+    document.addEventListener('touchmove', e => {
+      if (startY < 50 && e.touches[0].clientY > startY + 100 && window.scrollY === 0) {
+        showToast('🔄 Refreshing...', 'Pull down again to retry');
+      }
+    }, {passive:true});
+
+    // ─── INIT ─────────────────────────────────────────────
+    renderTrending();
+    renderLeaders();
+    renderTrendChips();
+  </script>
+</body>
+</html>
